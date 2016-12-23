@@ -1,30 +1,30 @@
-#pragma once
+п»ї#pragma once
 #include <stdio.h>
 
 class SEAL {
 private:
-	//таблицы от ключа
+	//С‚Р°Р±Р»РёС†С‹ РѕС‚ РєР»СЋС‡Р°
 	int T[512];
 	int S[256];
-	int *R;//размер зависит от L
+	int *R;//СЂР°Р·РјРµСЂ Р·Р°РІРёСЃРёС‚ РѕС‚ L
 
 	int P, Q, numb = 0x7fc;
 	int A, B, C, D, n1, n2, n3, n4;
-	//для тестов
+	//РґР»СЏ С‚РµСЃС‚РѕРІ
 	int ones, zeros, all;
 	int n[4];
 
-	//результат G
+	//СЂРµР·СѓР»СЊС‚Р°С‚ G
 	int H[5];
 
-	//для построения таблиц
+	//РґР»СЏ РїРѕСЃС‚СЂРѕРµРЅРёСЏ С‚Р°Р±Р»РёС†
 	void G(int a[5], int i);
 
 	int K(int t);
 
 	int f(int t, int B, int C, int D);
 
-	//циклический сдвиг вправо: n - что, t - на сколько
+	//С†РёРєР»РёС‡РµСЃРєРёР№ СЃРґРІРёРі РІРїСЂР°РІРѕ: n - С‡С‚Рѕ СЃРґРІРёРіР°РµРј, t - РЅР° СЃРєРѕР»СЊРєРѕ
 	int shiftR(int n, int t);
 
 	int Gamma(int a[5], int i);
@@ -37,7 +37,7 @@ private:
 
 	void freqTest(int *x, int size);
 
-	//Последовательный тест
+	//РџРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅС‹Р№ С‚РµСЃС‚
 	void serialTest(int *x, int size);
 
 	void runsTest(int *x, int size);

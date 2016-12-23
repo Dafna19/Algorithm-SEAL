@@ -1,13 +1,13 @@
-#include<iostream>
+п»ї#include<iostream>
 #include<cmath>
 #include "SEAL.h"
 using namespace std;
 /*
-1. Частотный тест			
-2. Последовательный тест	
-3. Тест серий				
-4. Автокорреляционный тест	
-5. Универсальный тест		
+1. Р§Р°СЃС‚РѕС‚РЅС‹Р№ С‚РµСЃС‚			
+2. РџРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅС‹Р№ С‚РµСЃС‚	
+3. РўРµСЃС‚ СЃРµСЂРёР№				
+4. РђРІС‚РѕРєРѕСЂСЂРµР»СЏС†РёРѕРЅРЅС‹Р№ С‚РµСЃС‚	
+5. РЈРЅРёРІРµСЂСЃР°Р»СЊРЅС‹Р№ С‚РµСЃС‚		
 */
 
 void main(int argc, char* argv[]) {
@@ -19,16 +19,16 @@ void main(int argc, char* argv[]) {
 	while ((c = getchar()) != '\n')
 		a[i++] = c;
 	a[i] = '\0';
-	L = i * 8;//i char'ов, т.е. 8*i бит
-	int *text = new int[ceil((float)i / 4)];//его кодируем, размер в 4 раза меньше
+	L = i * 8;//i char'РѕРІ, С‚.Рµ. 8*i Р±РёС‚
+	int *text = new int[ceil((float)i / 4)];//РµРіРѕ РєРѕРґРёСЂСѓРµРј, СЂР°Р·РјРµСЂ РІ 4 СЂР°Р·Р° РјРµРЅСЊС€Рµ
 
-	//вот здесь упаковать чары в инт без лишних нулей
+	//РІРѕС‚ Р·РґРµСЃСЊ СѓРїР°РєРѕРІР°С‚СЊ С‡Р°СЂС‹ РІ РёРЅС‚ Р±РµР· Р»РёС€РЅРёС… РЅСѓР»РµР№
 	for (int j = 0; j < ceil((float)i / 4); j++) {
 		int tmp = 0;
 		for (int k = 0; k < 4; k++) {
 			int num = 4 * j + k;
 			tmp = tmp << 8;
-			if (num < i)//если текст ещё не кончился
+			if (num < i)//РµСЃР»Рё С‚РµРєСЃС‚ РµС‰С‘ РЅРµ РєРѕРЅС‡РёР»СЃСЏ
 				tmp += a[num];
 		}
 		text[j] = tmp;
@@ -51,7 +51,7 @@ void main(int argc, char* argv[]) {
 	int *dec = seal.coding(enc, L, key, n);
 
 	char *decoded = new char[L / 8];
-	int d = 0;//индекс по decoded
+	int d = 0;//РёРЅРґРµРєСЃ РїРѕ decoded
 	for (int i = 0; i < ceil((float)L / 32); i++) {
 		for (int s = 3; s >= 0; s--) {
 			decoded[d++] = dec[i] >> (8 * s);
@@ -64,7 +64,7 @@ void main(int argc, char* argv[]) {
 	cout << endl;
 
 	cout << "\ntests:\n";
-	seal.tests(100000, key, n);
+	seal.tests(100000, key, n);//Р·Р°РґР°С‘Рј РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚СЊ РґР»СЏ Р°РЅР°Р»РёР·Р° С‚РµСЃС‚Р°РјРё
 
 
 	system("PAUSE");
