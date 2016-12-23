@@ -34,27 +34,12 @@ void main(int argc, char* argv[]) {
 		text[j] = tmp;
 	}
 
-
-	/*cout << "your text:" << endl;
-	for (int j = 0; j < L; j++)
-		cout << (char)text[j];
-	cout << endl;*/
-
-	/*char key[20];
-	for (int i = 0; i < 20; i++)
-		key[i] = 0;*/
+	
 	int key[5];
 	cout << "write your key (5 numbers):" << endl;
 	for (int i = 0; i < 5; i++)
 		cin >> key[i];
-	/*int k[5];
-	for (int i = 0; i < 5; i++) {
-		int tmp = key[4 * i + 0];
-		tmp = tmp << 8 + key[4 * i + 1];
-		tmp = tmp << 8 + key[4 * i + 2];
-		tmp = tmp << 8 + key[4 * i + 3];
-		k[i] = tmp;
-	}*/
+	
 
 	cout << "write n:" << endl;
 	cin >> n;
@@ -62,10 +47,6 @@ void main(int argc, char* argv[]) {
 	int *enc = seal.coding(text, L, key, n);
 
 	cout << "coded" << endl;
-	/*for (int j = 0; j < L; j++) 
-		cout << (char)(enc[j]>>24);
-	cout << endl;*/
-
 
 	int *dec = seal.coding(enc, L, key, n);
 
@@ -77,11 +58,13 @@ void main(int argc, char* argv[]) {
 		}
 	}
 
-
-	cout << "decoded:" << endl;
+	cout << "\ndecoded:" << endl;
 	for (int j = 0; j < L / 8; j++)
 		cout << decoded[j];
 	cout << endl;
+
+	cout << "\ntests:\n";
+	seal.tests(100000, key, n);
 
 
 	system("PAUSE");

@@ -48,4 +48,6 @@ private:
 
 public:
 	int* coding(int *text, int L, int a[5], int n);
+
+	void tests(int L, int a[5], int n);
 };

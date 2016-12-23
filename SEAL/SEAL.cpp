@@ -197,8 +197,13 @@ void SEAL::freqTest(int * x, int size) {
 		}
 	}
 	all = ones + zeros;
-
-	cout << "freqTest: X1 = " << ((float)pow((zeros - ones), 2)) / all << endl;
+	float X1 = ((float)pow((zeros - ones), 2)) / all;
+	if (X1 < 3.8415)
+		cout << "freqTest passed with alpha = 0.05" << endl;
+	else if (X1 < 7.8794)
+		cout << "freqTest passed with alpha = 0.005" << endl;
+	else
+		cout << "freqTest failed" << endl;
 }
 
 void SEAL::serialTest(int * x, int size) {
@@ -215,9 +220,14 @@ void SEAL::serialTest(int * x, int size) {
 	int sqr = 0; //n00^2+n01^2+n10^2+n11^2
 	for (int i = 0; i < 4; i++) sqr += pow(n[i], 2);
 	float a = ((float)4) / (all - 1), b = (float)2 / all;
+	float X2 = a*sqr - b*(pow(zeros, 2) + pow(ones, 2)) + 1;
 
-	cout << "serialTest: X2 = " << a*sqr - b*(pow(zeros, 2) + pow(ones, 2)) + 1 << endl;
-
+	if (X2 < 5.9915)
+		cout << "serialTest passed with alpha = 0.05" << endl;
+	else if (X2 < 10.5966)
+		cout << "serialTest passed with alpha = 0.005" << endl;
+	else
+		cout << "serialTest failed" << endl;
 }
 
 void SEAL::runsTest(int * x, int size) {
@@ -262,9 +272,29 @@ void SEAL::runsTest(int * x, int size) {
 		sum1 += pow(B[i] - e[i], 2) / e[i];
 		sum2 += pow(G[i] - e[i], 2) / e[i];
 	}
-	float sum = sum1 + sum2;
-	cout << "runsTest: X3 = " << sum;
-	cout << " k = " << k << endl;
+	float X3 = sum1 + sum2;
+	float table[6][3] = {
+		{1, 3.8415, 7.8794},//степень свободы 1
+		{2, 5.9915, 10.5966},
+		{4, 9.4877, 14.8603},
+		{10, 18.307, 25.1882},
+		{20, 31.4104, 39.9968},
+		{22, 33.9244, 42.7957}
+	};
+	int v;
+	for (int i = 5; i >= 0; i--) {
+		if (2 * k - 2 >= table[i][0]) {
+			v = i;
+			break;
+		}
+	}
+
+	if (X3 < table[v][1])
+		cout << "runsTest passed with alpha = 0.05" << endl;
+	else if (X3 < table[v][2])
+		cout << "runsTest passed with alpha = 0.005" << endl;
+	else
+		cout << "runsTest failed " << endl;
 }
 
 void SEAL::autocorrTest(int * x, int size) {
@@ -283,29 +313,34 @@ void SEAL::autocorrTest(int * x, int size) {
 		}
 	}
 	float up = 2 * (A - ((float)(all - d)) / 2);
-	cout << "autocorrTest: X4 = " << up / sqrt(all - d) << endl;
+	float X4 = up / sqrt(all - d);
+	if (X4 < 1.6449)
+		cout << "autocorrTest passed with alpha = 0.05" << endl;
+	else if (X4 < 2.5758)
+		cout << "autocorrTest passed with alpha = 0.005" << endl;
+	else
+		cout << "autocorrTest failed" << endl;
 }
 
 void SEAL::universTest(int * x, int size) {
 	srand(time(NULL));
-	int L = 9;//rand() % 10 + 6;
+	int L = 9;
 	int number = 1;//маска
 	for (int i = 0; i < L - 1; i++) {
 		number = number << 1;
 		number++;
 	}
-	int Q = ceil((size * 32 * 0.2)/L);//10 * pow(2, L) + L
-	int K = size * 32/L - Q;//1000 * pow(2, L) + L
+	int Q = ceil((size * 32 * 0.2) / L);
+	int K = size * 32 / L - Q;
 	int *T = new int[Q + K];
 	for (int j = 0; j < Q + K; j++)
 		T[j] = 0;
-	//number = number&(K + Q);
 
 	int q = 0;
 	float sum = 0;
 	for (int i = 0; i < size; i++) {
 		int t = x[i];
-		for (int j = 0; j < ceil(((float)32)/L); j++) {
+		for (int j = 0; j < ceil(((float)32) / L); j++) {
 			if (q < Q) {//инициализация
 				T[t&number] = q;
 			}
@@ -318,8 +353,13 @@ void SEAL::universTest(int * x, int size) {
 		}
 		if (q >= Q + K) break;
 	}
-
-	cout << "universTest: Xu = " << sum / K << endl << endl;
+	float Xu = sum / K;
+	if (Xu < 1.6449)
+		cout << "universTest passed with alpha = 0.05" << endl;
+	else if (Xu < 2.5758)
+		cout << "universTest passed with alpha = 0.005" << endl;
+	else
+		cout << "universTest failed" << endl;
 }
 
 int* SEAL::coding(int * text, int L, int a[5], int n) {//L бит
@@ -329,12 +369,17 @@ int* SEAL::coding(int * text, int L, int a[5], int n) {//L бит
 	y = Seal(a, n, L);//создали гамму-последовательность
 	for (int i = 0; i < ceil((float)L / 32); i++)
 		coded[i] = text[i] ^ y[i];
+	return coded;
+}
+
+void SEAL::tests(int L, int a[5], int n) {
+	int *y;
+	makeTables(a, L);
+	y = Seal(a, n, L);//создали гамму-последовательность
 
 	freqTest(y, ceil((float)L / 128) * 4);//кол-во int'ов
 	serialTest(y, ceil((float)L / 128) * 4);
 	runsTest(y, ceil((float)L / 128) * 4);
 	autocorrTest(y, ceil((float)L / 128) * 4);
 	universTest(y, ceil((float)L / 128) * 4);
-
-	return coded;
 }
