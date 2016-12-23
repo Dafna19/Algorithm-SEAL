@@ -10,6 +10,9 @@ private:
 
 	int P, Q, numb = 0x7fc;
 	int A, B, C, D, n1, n2, n3, n4;
+	//для тестов
+	int ones, zeros, all;
+	int n[4];
 
 	//результат G
 	int H[5];
@@ -31,6 +34,17 @@ private:
 	int* Seal(int a[5], int n, int L);
 
 	void initialize(int n, int l);
+
+	void freqTest(int *x, int size);
+
+	//Последовательный тест
+	void serialTest(int *x, int size);
+
+	void runsTest(int *x, int size);
+
+	void autocorrTest(int *x, int size);
+
+	void universTest(int *x, int size);
 
 public:
 	int* coding(int *text, int L, int a[5], int n);

@@ -1,7 +1,14 @@
 #include<iostream>
-#include "SEAL.h"
 #include<cmath>
+#include "SEAL.h"
 using namespace std;
+/*
+1. Частотный тест			
+2. Последовательный тест	
+3. Тест серий				
+4. Автокорреляционный тест	
+5. Универсальный тест		
+*/
 
 void main(int argc, char* argv[]) {
 	SEAL seal;
@@ -11,10 +18,23 @@ void main(int argc, char* argv[]) {
 	char c;
 	while ((c = getchar()) != '\n')
 		a[i++] = c;
-	L = i;//L int'ов, т.е. 32*L бит
-	int *text = new int[i];//его кодируем
-	for (int j = 0; j < L; j++)
-		text[j] = a[j];
+	a[i] = '\0';
+	L = i * 8;//i char'ов, т.е. 8*i бит
+	int *text = new int[ceil((float)i / 4)];//его кодируем, размер в 4 раза меньше
+
+	//вот здесь упаковать чары в инт без лишних нулей	
+	for (int j = 0; j < ceil((float)i / 4); j++) {
+		int tmp = 0;
+		for (int k = 0; k < 4; k++) {
+			int num = 4 * j + k;
+			tmp = tmp << 8;
+			if (num < i)//если текст ещё не кончился
+				tmp += a[num];
+		}
+		text[j] = tmp;
+	}
+
+
 	/*cout << "your text:" << endl;
 	for (int j = 0; j < L; j++)
 		cout << (char)text[j];
@@ -39,19 +59,30 @@ void main(int argc, char* argv[]) {
 	cout << "write n:" << endl;
 	cin >> n;
 
-	int *enc = seal.coding(text, 32 * L, key, n);
+	int *enc = seal.coding(text, L, key, n);
 
-	cout << "coded:" << endl;
-	for (int j = 0; j < L; j++)
-		cout << (char)enc[j];
-	cout << endl;
+	cout << "coded" << endl;
+	/*for (int j = 0; j < L; j++) 
+		cout << (char)(enc[j]>>24);
+	cout << endl;*/
 
 
-	int *dec = seal.coding(enc, 32 * L, key, n);
+	int *dec = seal.coding(enc, L, key, n);
+
+	char *decoded = new char[L / 8];
+	int d = 0;//индекс по decoded
+	for (int i = 0; i < ceil((float)L / 32); i++) {
+		for (int s = 3; s >= 0; s--) {
+			decoded[d++] = dec[i] >> (8 * s);
+		}
+	}
+
+
 	cout << "decoded:" << endl;
-	for (int j = 0; j < L; j++)
-		cout << (char)dec[j];
+	for (int j = 0; j < L / 8; j++)
+		cout << decoded[j];
 	cout << endl;
+
 
 	system("PAUSE");
 }

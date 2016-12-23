@@ -1,7 +1,10 @@
 #include "SEAL.h"
 #include<iostream>
+#include<cmath>
+#include <time.h>
+using namespace std;
 
-void SEAL::G(int a[5], int i){
+void SEAL::G(int a[5], int i) {
 	int W[80];
 	W[0] = i;
 	for (int y = 1; y < 16; y++)
@@ -27,7 +30,7 @@ void SEAL::G(int a[5], int i){
 	H[4] = a[4] + E;
 }
 
-int SEAL::K(int t){
+int SEAL::K(int t) {
 	if (t >= 0 && t <= 19)
 		return 0x5a827999;
 	if (t >= 20 && t <= 39)
@@ -38,7 +41,7 @@ int SEAL::K(int t){
 		return 0xca62c1d6;
 }
 
-int SEAL::f(int t, int B, int C, int D){
+int SEAL::f(int t, int B, int C, int D) {
 	if (t >= 0 && t <= 19)
 		return (B&C) | ((~B)&D);
 	if (t >= 20 && t <= 39 || t >= 60 && t <= 79)
@@ -47,7 +50,7 @@ int SEAL::f(int t, int B, int C, int D){
 		return (B&C) | (B&D) | (C&D);
 }
 
-int SEAL::shiftR(int n, int t){
+int SEAL::shiftR(int n, int t) {
 	//если слева будут 1
 	int buf = 0;
 	for (int i = 0; i < 32 - t; i++) {
@@ -56,15 +59,15 @@ int SEAL::shiftR(int n, int t){
 	}
 	int p1 = (n >> t)&buf;
 	int p2 = n << (32 - t);
-	return p1|p2;
+	return p1 | p2;
 }
 
-int SEAL::Gamma(int a[5], int i){
+int SEAL::Gamma(int a[5], int i) {
 	G(a, i / 5);
-	return H[i%5];
+	return H[i % 5];
 }
 
-void SEAL::makeTables(int a[5], int L){//L бит
+void SEAL::makeTables(int a[5], int L) {//L бит
 	for (int i = 0; i < 512; i++)
 		T[i] = Gamma(a, i);
 	for (int j = 0; j < 256; j++)
@@ -75,7 +78,7 @@ void SEAL::makeTables(int a[5], int L){//L бит
 		R[k] = Gamma(a, 0x2000 + k);
 }
 
-int* SEAL::Seal(int a[5], int n, int L){//L бит
+int* SEAL::Seal(int a[5], int n, int L) {//L бит
 	int len = ceil((float)L / 128) * 4;
 	int *y = new int[len];
 	for (int i = 0; i < len; i++)
@@ -125,7 +128,7 @@ int* SEAL::Seal(int a[5], int n, int L){//L бит
 			y[k++] = C^S[4 * i - 3];
 			y[k++] = D + S[4 * i - 2];
 			y[k++] = A^S[4 * i - 1];
-			if (k >= L / 32)
+			if (k >= ceil((float)L / 32))
 				return y;
 			if (i % 2 == 0) {//четное
 				A = A + n1;
@@ -139,8 +142,8 @@ int* SEAL::Seal(int a[5], int n, int L){//L бит
 	}
 }
 
-void SEAL::initialize(int n, int l){
-	A = n^R[4*l];
+void SEAL::initialize(int n, int l) {
+	A = n^R[4 * l];
 	B = shiftR(n, 8) ^ R[4 * l + 1];
 	C = shiftR(n, 16) ^ R[4 * l + 2];
 	D = shiftR(n, 24) ^ R[4 * l + 3];
@@ -183,13 +186,155 @@ void SEAL::initialize(int n, int l){
 	D = shiftR(D, 9);
 }
 
-int* SEAL::coding(int * text, int L, int a[5], int n){//L бит
-	int *coded = new int[L/32];
+void SEAL::freqTest(int * x, int size) {
+	ones = zeros = 0;
+	for (int i = 0; i < size; i++) {
+		int t = x[i];
+		for (int j = 0; j < 32; j++) {
+			if (t % 2 == 0) zeros++;
+			else ones++;
+			t = t >> 1;
+		}
+	}
+	all = ones + zeros;
+
+	cout << "freqTest: X1 = " << ((float)pow((zeros - ones), 2)) / all << endl;
+}
+
+void SEAL::serialTest(int * x, int size) {
+	// ones, zeros уже посчитаны
+	n[0] = n[1] = n[2] = n[3] = 0;
+	for (int i = 0; i < size; i++) {
+		int t = x[i];
+		for (int j = 0; j < 32; j++) {
+			int ind = t & 3;//то же что t % 4
+			n[ind]++;
+			t = t >> 1;
+		}
+	}
+	int sqr = 0; //n00^2+n01^2+n10^2+n11^2
+	for (int i = 0; i < 4; i++) sqr += pow(n[i], 2);
+	float a = ((float)4) / (all - 1), b = (float)2 / all;
+
+	cout << "serialTest: X2 = " << a*sqr - b*(pow(zeros, 2) + pow(ones, 2)) + 1 << endl;
+
+}
+
+void SEAL::runsTest(int * x, int size) {
+	int e[20];//число ожидаемых серий (но индексация от 0)
+	int k;
+	for (int i = 0; i < 20; i++) {
+		e[i] = (size * 32 - i + 2) / pow(2, i + 3);
+		if (e[i] < 5) {
+			k = i;
+			break;
+		}
+	}
+	int *B = new int[k];//1   B[0] = B1; B[k-1] = Bk
+	int *G = new int[k];//0
+	for (int i = 0; i < k; i++)
+		B[i] = G[i] = 0;
+
+	int prev;
+	int len = 0;//длина серии
+	for (int i = 0; i < size; i++) {
+		int t = x[i];
+		for (int j = 31; j >= 0; j--) {
+			if (len == 0) {
+				prev = (t >> j) % 2;
+				len = 1;
+				continue;
+			}
+			if ((t >> j) % 2 == prev)
+				len++;
+			else {
+				len = fmin(len, k);
+				if (prev)//если была серия из 1
+					B[len - 1]++;
+				else G[len - 1]++;
+				len = 1;
+				prev = (prev + 1) % 2;
+			}
+		}
+	}
+	float sum1 = 0, sum2 = 0;
+	for (int i = 0; i < k; i++) {
+		sum1 += pow(B[i] - e[i], 2) / e[i];
+		sum2 += pow(G[i] - e[i], 2) / e[i];
+	}
+	float sum = sum1 + sum2;
+	cout << "runsTest: X3 = " << sum;
+	cout << " k = " << k << endl;
+}
+
+void SEAL::autocorrTest(int * x, int size) {
+	//all посчитано
+	srand(time(NULL));
+	int d = rand() % ((size * 32 - 1) / 2) + 1;//сдвиг
+	int A = 0;
+	for (int i = 0; i < size; i++) {
+		int t = x[i];
+		for (int j = 0; j < 32; j++) {
+			int a = (t >> d) % 2;
+			int b = t % 2;
+			if (a^b > 0)
+				A++;
+			t = t >> 1;
+		}
+	}
+	float up = 2 * (A - ((float)(all - d)) / 2);
+	cout << "autocorrTest: X4 = " << up / sqrt(all - d) << endl;
+}
+
+void SEAL::universTest(int * x, int size) {
+	srand(time(NULL));
+	int L = 9;//rand() % 10 + 6;
+	int number = 1;//маска
+	for (int i = 0; i < L - 1; i++) {
+		number = number << 1;
+		number++;
+	}
+	int Q = ceil((size * 32 * 0.2)/L);//10 * pow(2, L) + L
+	int K = size * 32/L - Q;//1000 * pow(2, L) + L
+	int *T = new int[Q + K];
+	for (int j = 0; j < Q + K; j++)
+		T[j] = 0;
+	//number = number&(K + Q);
+
+	int q = 0;
+	float sum = 0;
+	for (int i = 0; i < size; i++) {
+		int t = x[i];
+		for (int j = 0; j < ceil(((float)32)/L); j++) {
+			if (q < Q) {//инициализация
+				T[t&number] = q;
+			}
+			if (q >= Q && q < Q + K) {
+				sum += log10(q - T[t&number]);
+				T[t&number] = q;
+			}
+			t = t >> L;
+			q++;
+		}
+		if (q >= Q + K) break;
+	}
+
+	cout << "universTest: Xu = " << sum / K << endl << endl;
+}
+
+int* SEAL::coding(int * text, int L, int a[5], int n) {//L бит
+	int *coded = new int[ceil((float)L / 32)];
 	int *y;
 	makeTables(a, L);
 	y = Seal(a, n, L);//создали гамму-последовательность
-	for (int i = 0; i < L / 32; i++)
+	for (int i = 0; i < ceil((float)L / 32); i++)
 		coded[i] = text[i] ^ y[i];
+
+	freqTest(y, ceil((float)L / 128) * 4);//кол-во int'ов
+	serialTest(y, ceil((float)L / 128) * 4);
+	runsTest(y, ceil((float)L / 128) * 4);
+	autocorrTest(y, ceil((float)L / 128) * 4);
+	universTest(y, ceil((float)L / 128) * 4);
 
 	return coded;
 }
