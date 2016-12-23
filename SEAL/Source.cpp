@@ -22,7 +22,7 @@ void main(int argc, char* argv[]) {
 	L = i * 8;//i char'ов, т.е. 8*i бит
 	int *text = new int[ceil((float)i / 4)];//его кодируем, размер в 4 раза меньше
 
-	//вот здесь упаковать чары в инт без лишних нулей	
+	//вот здесь упаковать чары в инт без лишних нулей
 	for (int j = 0; j < ceil((float)i / 4); j++) {
 		int tmp = 0;
 		for (int k = 0; k < 4; k++) {
