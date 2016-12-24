@@ -198,7 +198,7 @@ void SEAL::freqTest(int * x, int size) {
 	}
 	all = ones + zeros;
 	float X1 = ((float)pow((zeros - ones), 2)) / all;
-	if (X1 < 3.8415)
+	if (X1 < 3.8415)//проверяется по x^2 распределению с 1 степенью свободы
 		cout << "freqTest passed with alpha = 0.05" << endl;
 	else if (X1 < 7.8794)
 		cout << "freqTest passed with alpha = 0.005" << endl;
@@ -222,7 +222,7 @@ void SEAL::serialTest(int * x, int size) {
 	float a = ((float)4) / (all - 1), b = (float)2 / all;
 	float X2 = a*sqr - b*(pow(zeros, 2) + pow(ones, 2)) + 1;
 
-	if (X2 < 5.9915)
+	if (X2 < 5.9915)//проверяется по x^2 распределению с 2 степенями свободы
 		cout << "serialTest passed with alpha = 0.05" << endl;
 	else if (X2 < 10.5966)
 		cout << "serialTest passed with alpha = 0.005" << endl;
@@ -289,7 +289,7 @@ void SEAL::runsTest(int * x, int size) {
 		}
 	}
 
-	if (X3 < table[v][1])
+	if (X3 < table[v][1])//проверяется по x^2 распределению с 2k-2 степенями свободы
 		cout << "runsTest passed with alpha = 0.05" << endl;
 	else if (X3 < table[v][2])
 		cout << "runsTest passed with alpha = 0.005" << endl;
@@ -314,9 +314,9 @@ void SEAL::autocorrTest(int * x, int size) {
 	}
 	float up = 2 * (A - ((float)(all - d)) / 2);
 	float X4 = up / sqrt(all - d);
-	if (X4 < 1.6449)
+	if (X4 < 1.6449 && X4 > -1.6449)//двусторонний тест по распределению N(0,1)
 		cout << "autocorrTest passed with alpha = 0.05" << endl;
-	else if (X4 < 2.5758)
+	else if (X4 < 2.5758 && X4 > -2.5758)
 		cout << "autocorrTest passed with alpha = 0.005" << endl;
 	else
 		cout << "autocorrTest failed" << endl;
@@ -354,9 +354,9 @@ void SEAL::universTest(int * x, int size) {
 		if (q >= Q + K) break;
 	}
 	float Xu = sum / K;
-	if (Xu < 1.6449)
+	if (Xu < 1.6449 && Xu > -1.6449)//двусторонний тест по распределению N(0,1)
 		cout << "universTest passed with alpha = 0.05" << endl;
-	else if (Xu < 2.5758)
+	else if (Xu < 2.5758 && Xu > -2.5758)
 		cout << "universTest passed with alpha = 0.005" << endl;
 	else
 		cout << "universTest failed" << endl;
