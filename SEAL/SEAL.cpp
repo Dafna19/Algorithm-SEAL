@@ -324,14 +324,25 @@ void SEAL::autocorrTest(int * x, int size) {
 
 void SEAL::universTest(int * x, int size) {
 	srand(time(NULL));
-	int L = 9;
+	int L = rand() % 10 + 6; //6 <= L < 16
 	int number = 1;//маска
 	for (int i = 0; i < L - 1; i++) {
 		number = number << 1;
 		number++;
 	}
-	int Q = ceil((size * 32 * 0.2) / L);
-	int K = size * 32 / L - Q;
+	int Q = 10 * pow(2, L);
+	int K = 1000 * pow(2, L);
+	/*//проверяю, сходится ли размер после-ти с нужным
+	//длина пос-ти должна быть минимум 1010 * 2^6 * 6 бит, т.к. L равна минимум 6
+	int testsize = 1010 * pow(2, L)*L;
+	if (size * 32 >= testsize)
+		cout << "norm size\n";
+	else
+		cout << "too small size\n";
+	cout << "\nsize = " << size * 32 << " bits = " << size * 32 / L << " blocks, L = " << L << " bits, Q = " << Q << " blocks, K = " << K << " blocks\n";
+	cout << "required size = " << testsize << " bits\n";
+	*/
+
 	int *T = new int[Q + K];
 	for (int j = 0; j < Q + K; j++)
 		T[j] = 0;

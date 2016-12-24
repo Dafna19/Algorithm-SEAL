@@ -64,7 +64,7 @@ void main(int argc, char* argv[]) {
 	cout << endl;
 
 	cout << "\ntests:\n";
-	seal.tests(100000, key, n);//задаём последовательность для анализа тестами
+	seal.tests(400000, key, n);//задаём последовательность для анализа тестами
 
 
 	system("PAUSE");
